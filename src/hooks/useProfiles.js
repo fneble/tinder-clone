@@ -1,31 +1,58 @@
 import { useCallback, useEffect, useState } from 'react'
+import { getAllProfiles, replaceAllProfiles } from '../utils/db'
 
-const STORAGE_KEY = 'tinder-clone:profiles'
+const LEGACY_STORAGE_KEY = 'tinder-clone:profiles'
 
-function loadProfiles() {
+function loadLegacyProfiles() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
+    const raw = localStorage.getItem(LEGACY_STORAGE_KEY)
+    return raw ? JSON.parse(raw) : null
   } catch {
-    return []
+    return null
   }
 }
 
 export function useProfiles() {
-  const [profiles, setProfiles] = useState(loadProfiles)
+  const [profiles, setProfiles] = useState([])
+  const [isLoaded, setIsLoaded] = useState(false)
   const [saveError, setSaveError] = useState(null)
 
+  // One-time load: read from IndexedDB, migrating any pre-existing
+  // localStorage profiles in on first run (they used to be capped at ~5MB).
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles))
-      setSaveError(null)
-    } catch (err) {
-      console.error('Failed to save profiles', err)
-      setSaveError(
-        "Couldn't save — you're out of storage space. Try removing a profile or a few photos."
-      )
+    let cancelled = false
+    ;(async () => {
+      try {
+        let loaded = await getAllProfiles()
+        const legacy = loadLegacyProfiles()
+        if (legacy && legacy.length > 0 && loaded.length === 0) {
+          await replaceAllProfiles(legacy)
+          loaded = legacy
+        }
+        if (legacy !== null) localStorage.removeItem(LEGACY_STORAGE_KEY)
+        if (!cancelled) setProfiles(loaded)
+      } catch (err) {
+        console.error('Failed to load profiles', err)
+      } finally {
+        if (!cancelled) setIsLoaded(true)
+      }
+    })()
+    return () => {
+      cancelled = true
     }
-  }, [profiles])
+  }, [])
+
+  useEffect(() => {
+    if (!isLoaded) return
+    replaceAllProfiles(profiles)
+      .then(() => setSaveError(null))
+      .catch((err) => {
+        console.error('Failed to save profiles', err)
+        setSaveError(
+          "Couldn't save — you're out of storage space. Try removing a profile or a few photos."
+        )
+      })
+  }, [profiles, isLoaded])
 
   const addProfile = useCallback((profile) => {
     setProfiles((prev) => [...prev, { ...profile, id: crypto.randomUUID() }])
@@ -39,5 +66,5 @@ export function useProfiles() {
     setProfiles((prev) => prev.filter((p) => p.id !== id))
   }, [])
 
-  return { profiles, addProfile, updateProfile, deleteProfile, saveError }
+  return { profiles, addProfile, updateProfile, deleteProfile, saveError, isLoaded }
 }
