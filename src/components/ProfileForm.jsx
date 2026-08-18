@@ -1,20 +1,24 @@
 import { useState } from 'react'
+import { resizeImage } from '../utils/resizeImage'
 
 const emptyForm = { name: '', age: '', bio: '', photos: [] }
 
 export default function ProfileForm({ onCreate }) {
   const [form, setForm] = useState(emptyForm)
+  const [photoError, setPhotoError] = useState('')
 
-  function handlePhotos(e) {
+  async function handlePhotos(e) {
     const files = Array.from(e.target.files || [])
-    files.forEach((file) => {
-      const reader = new FileReader()
-      reader.onload = () => {
-        setForm((f) => ({ ...f, photos: [...f.photos, reader.result] }))
-      }
-      reader.readAsDataURL(file)
-    })
     e.target.value = ''
+    setPhotoError('')
+    for (const file of files) {
+      try {
+        const dataUrl = await resizeImage(file)
+        setForm((f) => ({ ...f, photos: [...f.photos, dataUrl] }))
+      } catch {
+        setPhotoError(`Couldn't process "${file.name}" — try a different photo.`)
+      }
+    }
   }
 
   function removePhoto(index) {
@@ -26,6 +30,7 @@ export default function ProfileForm({ onCreate }) {
     if (!form.name.trim()) return
     onCreate({ ...form, name: form.name.trim(), age: form.age ? Number(form.age) : undefined })
     setForm(emptyForm)
+    setPhotoError('')
   }
 
   return (
@@ -66,6 +71,7 @@ export default function ProfileForm({ onCreate }) {
         Photos
         <input type="file" accept="image/*" multiple onChange={handlePhotos} />
       </label>
+      {photoError && <p className="form-error">{photoError}</p>}
       {form.photos.length > 0 && (
         <div className="photo-thumbs">
           {form.photos.map((src, i) => (

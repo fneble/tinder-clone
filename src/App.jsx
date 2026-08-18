@@ -7,7 +7,7 @@ import MatchModal from './components/MatchModal'
 import './App.css'
 
 export default function App() {
-  const { profiles, addProfile, deleteProfile } = useProfiles()
+  const { profiles, addProfile, deleteProfile, saveError } = useProfiles()
   const { decisions, decide, reset } = useSwipeState()
   const [view, setView] = useState('discover')
   const [matchedProfile, setMatchedProfile] = useState(null)
@@ -70,6 +70,7 @@ export default function App() {
 
         {view === 'manage' && (
           <div className="manage-view">
+            {saveError && <p className="save-error-banner">{saveError}</p>}
             <ProfileForm onCreate={addProfile} />
             <div className="profile-list">
               <h3>Your profiles ({profiles.length})</h3>
