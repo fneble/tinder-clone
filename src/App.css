@@ -4,6 +4,31 @@
   --tinder-gradient: linear-gradient(45deg, var(--tinder-red), var(--tinder-orange));
 }
 
+.crash-screen {
+  max-width: 420px;
+  height: 100vh;
+  margin: 0 auto;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  gap: 8px;
+}
+
+.crash-screen button {
+  margin-top: 12px;
+  border: none;
+  background: var(--tinder-gradient);
+  color: #fff;
+  font-weight: 700;
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-size: 14px;
+}
+
 .app {
   max-width: 420px;
   height: 100vh;
@@ -278,6 +303,15 @@
   padding: 16px;
 }
 
+.save-error-banner {
+  background: #fdeaea;
+  color: #b3261e;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  margin: 0 0 16px;
+}
+
 .profile-form {
   background: #fafafa;
   border-radius: 12px;
@@ -327,6 +361,12 @@
   padding: 0;
 }
 
+.form-error {
+  color: #d6294c;
+  font-size: 12px;
+  margin: -6px 0 12px;
+}
+
 .photo-thumbs {
   display: flex;
   flex-wrap: wrap;
@@ -365,13 +405,28 @@
   justify-content: center;
 }
 
+.form-actions {
+  display: flex;
+  gap: 10px;
+}
+
 .submit-btn {
-  width: 100%;
+  flex: 1;
   border: none;
   background: var(--tinder-gradient);
   color: #fff;
   font-weight: 700;
   padding: 12px;
+  border-radius: 24px;
+  font-size: 15px;
+}
+
+.cancel-btn {
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #555;
+  font-weight: 600;
+  padding: 12px 20px;
   border-radius: 24px;
   font-size: 15px;
 }
@@ -386,6 +441,13 @@
   gap: 12px;
   padding: 10px 0;
   border-bottom: 1px solid #f0f0f0;
+}
+
+.profile-row.editing {
+  background: #fff0f4;
+  border-radius: 8px;
+  margin: 0 -8px;
+  padding: 10px 8px;
 }
 
 .profile-row-photo {
@@ -426,13 +488,27 @@
   white-space: nowrap;
 }
 
+.profile-row-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.edit-btn,
 .delete-btn {
   border: none;
   background: none;
-  color: #fd4b5c;
   font-size: 12px;
   font-weight: 600;
-  flex-shrink: 0;
+}
+
+.edit-btn {
+  color: var(--tinder-red);
+}
+
+.delete-btn {
+  color: #999;
 }
 
 /* ---------- matches view ---------- */

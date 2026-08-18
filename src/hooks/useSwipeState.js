@@ -15,7 +15,11 @@ export function useSwipeState() {
   const [decisions, setDecisions] = useState(loadDecisions)
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(decisions))
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(decisions))
+    } catch (err) {
+      console.error('Failed to save swipe decisions', err)
+    }
   }, [decisions])
 
   const decide = useCallback((id, decision) => {

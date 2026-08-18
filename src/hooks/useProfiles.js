@@ -13,9 +13,18 @@ function loadProfiles() {
 
 export function useProfiles() {
   const [profiles, setProfiles] = useState(loadProfiles)
+  const [saveError, setSaveError] = useState(null)
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles))
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles))
+      setSaveError(null)
+    } catch (err) {
+      console.error('Failed to save profiles', err)
+      setSaveError(
+        "Couldn't save — you're out of storage space. Try removing a profile or a few photos."
+      )
+    }
   }, [profiles])
 
   const addProfile = useCallback((profile) => {
@@ -30,5 +39,5 @@ export function useProfiles() {
     setProfiles((prev) => prev.filter((p) => p.id !== id))
   }, [])
 
-  return { profiles, addProfile, updateProfile, deleteProfile }
+  return { profiles, addProfile, updateProfile, deleteProfile, saveError }
 }

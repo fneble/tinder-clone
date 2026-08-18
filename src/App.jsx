@@ -7,10 +7,12 @@ import MatchModal from './components/MatchModal'
 import './App.css'
 
 export default function App() {
-  const { profiles, addProfile, deleteProfile } = useProfiles()
+  const { profiles, addProfile, updateProfile, deleteProfile, saveError } = useProfiles()
   const { decisions, decide, reset } = useSwipeState()
   const [view, setView] = useState('discover')
   const [matchedProfile, setMatchedProfile] = useState(null)
+  const [editingId, setEditingId] = useState(null)
+  const editingProfile = profiles.find((p) => p.id === editingId) ?? null
 
   const queue = useMemo(
     () => profiles.filter((p) => !(p.id in decisions)),
@@ -27,6 +29,20 @@ export default function App() {
       const profile = profiles.find((p) => p.id === id)
       setMatchedProfile(profile)
     }
+  }
+
+  function handleFormSubmit(data) {
+    if (editingProfile) {
+      updateProfile(editingProfile.id, data)
+      setEditingId(null)
+    } else {
+      addProfile(data)
+    }
+  }
+
+  function handleDeleteProfile(id) {
+    deleteProfile(id)
+    if (id === editingId) setEditingId(null)
   }
 
   return (
@@ -70,11 +86,17 @@ export default function App() {
 
         {view === 'manage' && (
           <div className="manage-view">
-            <ProfileForm onCreate={addProfile} />
+            {saveError && <p className="save-error-banner">{saveError}</p>}
+            <ProfileForm
+              key={editingId ?? 'new'}
+              editingProfile={editingProfile}
+              onSubmit={handleFormSubmit}
+              onCancel={() => setEditingId(null)}
+            />
             <div className="profile-list">
               <h3>Your profiles ({profiles.length})</h3>
               {profiles.map((p) => (
-                <div className="profile-row" key={p.id}>
+                <div className={`profile-row ${p.id === editingId ? 'editing' : ''}`} key={p.id}>
                   <div className="profile-row-photo">
                     {p.photos?.[0] ? <img src={p.photos[0]} alt={p.name} /> : <span>🙂</span>}
                   </div>
@@ -85,9 +107,14 @@ export default function App() {
                     </strong>
                     <p>{p.bio}</p>
                   </div>
-                  <button className="delete-btn" onClick={() => deleteProfile(p.id)}>
-                    Delete
-                  </button>
+                  <div className="profile-row-actions">
+                    <button className="edit-btn" onClick={() => setEditingId(p.id)}>
+                      Edit
+                    </button>
+                    <button className="delete-btn" onClick={() => handleDeleteProfile(p.id)}>
+                      Delete
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
