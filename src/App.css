@@ -405,13 +405,28 @@
   justify-content: center;
 }
 
+.form-actions {
+  display: flex;
+  gap: 10px;
+}
+
 .submit-btn {
-  width: 100%;
+  flex: 1;
   border: none;
   background: var(--tinder-gradient);
   color: #fff;
   font-weight: 700;
   padding: 12px;
+  border-radius: 24px;
+  font-size: 15px;
+}
+
+.cancel-btn {
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #555;
+  font-weight: 600;
+  padding: 12px 20px;
   border-radius: 24px;
   font-size: 15px;
 }
@@ -426,6 +441,13 @@
   gap: 12px;
   padding: 10px 0;
   border-bottom: 1px solid #f0f0f0;
+}
+
+.profile-row.editing {
+  background: #fff0f4;
+  border-radius: 8px;
+  margin: 0 -8px;
+  padding: 10px 8px;
 }
 
 .profile-row-photo {
@@ -466,13 +488,27 @@
   white-space: nowrap;
 }
 
+.profile-row-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.edit-btn,
 .delete-btn {
   border: none;
   background: none;
-  color: #fd4b5c;
   font-size: 12px;
   font-weight: 600;
-  flex-shrink: 0;
+}
+
+.edit-btn {
+  color: var(--tinder-red);
+}
+
+.delete-btn {
+  color: #999;
 }
 
 /* ---------- matches view ---------- */

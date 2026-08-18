@@ -1,11 +1,28 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { resizeImage } from '../utils/resizeImage'
 
 const emptyForm = { name: '', age: '', bio: '', photos: [] }
 
-export default function ProfileForm({ onCreate }) {
-  const [form, setForm] = useState(emptyForm)
+function toFormState(profile) {
+  if (!profile) return emptyForm
+  return {
+    name: profile.name ?? '',
+    age: profile.age != null ? String(profile.age) : '',
+    bio: profile.bio ?? '',
+    photos: profile.photos ?? [],
+  }
+}
+
+export default function ProfileForm({ editingProfile, onSubmit, onCancel }) {
+  const [form, setForm] = useState(() => toFormState(editingProfile))
   const [photoError, setPhotoError] = useState('')
+  const isEditing = !!editingProfile
+  const formRef = useRef(null)
+
+  useEffect(() => {
+    if (isEditing) formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handlePhotos(e) {
     const files = Array.from(e.target.files || [])
@@ -28,14 +45,14 @@ export default function ProfileForm({ onCreate }) {
   function handleSubmit(e) {
     e.preventDefault()
     if (!form.name.trim()) return
-    onCreate({ ...form, name: form.name.trim(), age: form.age ? Number(form.age) : undefined })
-    setForm(emptyForm)
+    onSubmit({ ...form, name: form.name.trim(), age: form.age ? Number(form.age) : undefined })
+    if (!isEditing) setForm(emptyForm)
     setPhotoError('')
   }
 
   return (
-    <form className="profile-form" onSubmit={handleSubmit}>
-      <h3>Create a profile</h3>
+    <form className="profile-form" onSubmit={handleSubmit} ref={formRef}>
+      <h3>{isEditing ? `Edit ${editingProfile.name}` : 'Create a profile'}</h3>
       <div className="form-row">
         <label>
           Name
@@ -84,9 +101,16 @@ export default function ProfileForm({ onCreate }) {
           ))}
         </div>
       )}
-      <button type="submit" className="submit-btn">
-        Add profile
-      </button>
+      <div className="form-actions">
+        <button type="submit" className="submit-btn">
+          {isEditing ? 'Save changes' : 'Add profile'}
+        </button>
+        {isEditing && (
+          <button type="button" className="cancel-btn" onClick={onCancel}>
+            Cancel
+          </button>
+        )}
+      </div>
     </form>
   )
 }
