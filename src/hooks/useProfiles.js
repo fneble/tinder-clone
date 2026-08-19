@@ -12,6 +12,21 @@ function loadLegacyProfiles() {
   }
 }
 
+// Rewrites `order` to match the list's current array position — for use
+// once a list is already in the desired order (after a move or delete).
+function reindexOrder(list) {
+  return list.map((p, i) => (p.order === i ? p : { ...p, order: i }))
+}
+
+// IndexedDB's getAll() returns records sorted by key (a random UUID), not
+// insertion order, so display order has to be tracked explicitly. This also
+// backfills `order` for profiles saved before this field existed. Only used
+// on load, where `order` is the sole source of truth for the correct order.
+function withNormalizedOrder(list) {
+  const sorted = [...list].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  return reindexOrder(sorted)
+}
+
 export function useProfiles() {
   const [profiles, setProfiles] = useState([])
   const [isLoaded, setIsLoaded] = useState(false)
@@ -26,11 +41,10 @@ export function useProfiles() {
         let loaded = await getAllProfiles()
         const legacy = loadLegacyProfiles()
         if (legacy && legacy.length > 0 && loaded.length === 0) {
-          await replaceAllProfiles(legacy)
           loaded = legacy
         }
         if (legacy !== null) localStorage.removeItem(LEGACY_STORAGE_KEY)
-        if (!cancelled) setProfiles(loaded)
+        if (!cancelled) setProfiles(withNormalizedOrder(loaded))
       } catch (err) {
         console.error('Failed to load profiles', err)
       } finally {
@@ -55,7 +69,10 @@ export function useProfiles() {
   }, [profiles, isLoaded])
 
   const addProfile = useCallback((profile) => {
-    setProfiles((prev) => [...prev, { ...profile, id: crypto.randomUUID() }])
+    setProfiles((prev) => [
+      ...prev,
+      { ...profile, id: crypto.randomUUID(), order: prev.length },
+    ])
   }, [])
 
   const updateProfile = useCallback((id, updates) => {
@@ -63,8 +80,19 @@ export function useProfiles() {
   }, [])
 
   const deleteProfile = useCallback((id) => {
-    setProfiles((prev) => prev.filter((p) => p.id !== id))
+    setProfiles((prev) => reindexOrder(prev.filter((p) => p.id !== id)))
   }, [])
 
-  return { profiles, addProfile, updateProfile, deleteProfile, saveError, isLoaded }
+  const moveProfile = useCallback((id, direction) => {
+    setProfiles((prev) => {
+      const index = prev.findIndex((p) => p.id === id)
+      const targetIndex = direction === 'up' ? index - 1 : index + 1
+      if (index === -1 || targetIndex < 0 || targetIndex >= prev.length) return prev
+      const next = [...prev]
+      ;[next[index], next[targetIndex]] = [next[targetIndex], next[index]]
+      return reindexOrder(next)
+    })
+  }, [])
+
+  return { profiles, addProfile, updateProfile, deleteProfile, moveProfile, saveError, isLoaded }
 }

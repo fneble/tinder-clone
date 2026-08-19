@@ -7,7 +7,8 @@ import MatchModal from './components/MatchModal'
 import './App.css'
 
 export default function App() {
-  const { profiles, addProfile, updateProfile, deleteProfile, saveError, isLoaded } = useProfiles()
+  const { profiles, addProfile, updateProfile, deleteProfile, moveProfile, saveError, isLoaded } =
+    useProfiles()
   const { decisions, decide, reset } = useSwipeState()
   const [view, setView] = useState('discover')
   const [matchedProfile, setMatchedProfile] = useState(null)
@@ -101,8 +102,25 @@ export default function App() {
                 />
                 <div className="profile-list">
                   <h3>Your profiles ({profiles.length})</h3>
-                  {profiles.map((p) => (
+                  {profiles.length > 1 && <p className="reorder-hint">Use ▲▼ to set the swipe order.</p>}
+                  {profiles.map((p, i) => (
                     <div className={`profile-row ${p.id === editingId ? 'editing' : ''}`} key={p.id}>
+                      <div className="reorder-buttons">
+                        <button
+                          onClick={() => moveProfile(p.id, 'up')}
+                          disabled={i === 0}
+                          aria-label={`Move ${p.name} up`}
+                        >
+                          ▲
+                        </button>
+                        <button
+                          onClick={() => moveProfile(p.id, 'down')}
+                          disabled={i === profiles.length - 1}
+                          aria-label={`Move ${p.name} down`}
+                        >
+                          ▼
+                        </button>
+                      </div>
                       <div className="profile-row-photo">
                         {p.photos?.[0] ? <img src={p.photos[0]} alt={p.name} /> : <span>🙂</span>}
                       </div>
